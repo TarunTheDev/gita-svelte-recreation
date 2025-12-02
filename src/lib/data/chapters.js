@@ -1,0 +1,20 @@
+export const chapters = [
+  { id: 1, number: 1, name: "Arjuna Vishada Yoga", englishName: "The Yoga of Arjuna's Dejection", verses: 47 },
+  { id: 2, number: 2, name: "Sankhya Yoga", englishName: "The Yoga of Knowledge", verses: 72 },
+  { id: 3, number: 3, name: "Karma Yoga", englishName: "The Yoga of Action", verses: 43 },
+  { id: 4, number: 4, name: "Jnana Karma Sanyasa Yoga", englishName: "The Yoga of Wisdom", verses: 42 },
+  { id: 5, number: 5, name: "Karma Sanyasa Yoga", englishName: "The Yoga of Renunciation", verses: 29 },
+  { id: 6, number: 6, name: "Dhyana Yoga", englishName: "The Yoga of Meditation", verses: 47 },
+  { id: 7, number: 7, name: "Jnana Vijnana Yoga", englishName: "The Yoga of Knowledge and Wisdom", verses: 30 },
+  { id: 8, number: 8, name: "Aksara Brahma Yoga", englishName: "The Yoga of the Imperishable Brahman", verses: 28 },
+  { id: 9, number: 9, name: "Raja Vidya Raja Guhya Yoga", englishName: "The Yoga of Royal Knowledge", verses: 34 },
+  { id: 10, number: 10, name: "Vibhuti Yoga", englishName: "The Yoga of Divine Glories", verses: 42 },
+  { id: 11, number: 11, name: "Visvarupa Darsana Yoga", englishName: "The Yoga of the Universal Form", verses: 55 },
+  { id: 12, number: 12, name: "Bhakti Yoga", englishName: "The Yoga of Devotion", verses: 20 },
+  { id: 13, number: 13, name: "Ksetra Ksetrajna Vibhaga Yoga", englishName: "The Yoga of the Field and Knower", verses: 35 },
+  { id: 14, number: 14, name: "Gunatraya Vibhaga Yoga", englishName: "The Yoga of the Three Gunas", verses: 27 },
+  { id: 15, number: 15, name: "Purusottama Yoga", englishName: "The Yoga of the Supreme Spirit", verses: 20 },
+  { id: 16, number: 16, name: "Daivasura Sampad Vibhaga Yoga", englishName: "The Yoga of Divine and Demoniac", verses: 24 },
+  { id: 17, number: 17, name: "Sraddhatraya Vibhaga Yoga", englishName: "The Yoga of Three Kinds of Faith", verses: 28 },
+  { id: 18, number: 18, name: "Moksa Sanyasa Yoga", englishName: "The Yoga of Liberation", verses: 78 }
+];
