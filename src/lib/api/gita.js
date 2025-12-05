@@ -1,6 +1,7 @@
 import { verses as mockVerses } from '../data/verses';
 
-const API_BASE_URL = 'https://sanskrit.ie/api/geeta.php';
+// Use local API proxy to avoid CORS issues
+const API_BASE_URL = '/api/gita';
 
 /**
  * Parse HTML content from API response to extract Sanskrit, transliteration, and translation
@@ -8,6 +9,14 @@ const API_BASE_URL = 'https://sanskrit.ie/api/geeta.php';
  * @returns {{sanskrit: string, transliteration: string, translation: string}}
  */
 function parseVerseContent(lyrics) {
+  if (!lyrics) {
+    return {
+      sanskrit: '',
+      transliteration: '',
+      translation: ''
+    };
+  }
+
   // Remove HTML tags but preserve text content
   const stripHtml = (html) => {
     return html
@@ -51,8 +60,8 @@ function parseVerseContent(lyrics) {
   }
   
   return {
-    sanskrit: sanskrit || 'Sanskrit text loading...',
-    transliteration: transliteration || cleanText.substring(0, 200),
+    sanskrit: sanskrit || cleanText.substring(0, 100),
+    transliteration: transliteration || '',
     translation: translation || cleanText
   };
 }
@@ -64,16 +73,22 @@ function parseVerseContent(lyrics) {
  */
 export async function getChapterVerses(chapter) {
   try {
-    const response = await fetch(`${API_BASE_URL}?q=${chapter}`);
+    const response = await fetch(`${API_BASE_URL}/${chapter}`, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+      }
+    });
     
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      console.warn(`API returned status ${response.status}, using fallback data`);
+      return getFallbackChapterVerses(chapter);
     }
     
     const data = await response.json();
     
-    if (data.status === 200 && data.data) {
-      return data.data.map(verse => ({
+    if (data.status === 200 && data.data && Array.isArray(data.data)) {
+      const verses = data.data.map(verse => ({
         id: verse.geeta_id,
         chapterNo: parseInt(verse.chapter_no),
         verseNo: parseInt(verse.shlok_no),
@@ -82,11 +97,15 @@ export async function getChapterVerses(chapter) {
         qrUrl: verse.qr ? `https://sanskrit.ie/${verse.qr}` : null,
         ...parseVerseContent(verse.lyrics)
       }));
+      
+      console.log(`Fetched ${verses.length} verses for chapter ${chapter}`);
+      return verses;
     }
     
-    throw new Error('Invalid API response');
+    console.warn('Invalid API response structure, using fallback data');
+    return getFallbackChapterVerses(chapter);
   } catch (error) {
-    console.error('Error fetching chapter verses:', error);
+    console.error('Error fetching chapter verses:', error.message);
     // Fallback to mock data
     return getFallbackChapterVerses(chapter);
   }

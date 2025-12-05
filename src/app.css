@@ -279,3 +279,38 @@
 .dropdown-item:hover {
   background: #f8f8f8;
 }
+
+/* Lyrics content styles for modal */
+.lyrics-content {
+  text-align: center;
+  padding: 1em 2em;
+}
+
+.lyrics-content p {
+  margin-bottom: 1em;
+  line-height: 1.8;
+}
+
+.lyrics-content strong {
+  font-weight: bold;
+}
+
+.lyrics-content i {
+  font-style: italic;
+}
+
+/* Verse content container */
+.verse-content {
+  max-height: 65vh;
+  padding: 1em 3em;
+}
+
+@media (max-width: 640px) {
+  .verse-content {
+    padding: 1em 1em;
+  }
+  
+  .lyrics-content {
+    padding: 0.5em 1em;
+  }
+}
