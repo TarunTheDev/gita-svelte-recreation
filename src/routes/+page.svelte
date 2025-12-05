@@ -1,5 +1,6 @@
 <script>
   import { onMount } from 'svelte';
+  import { getVerse, getChapterVerses } from '$lib/api/gita';
   
   let selectedChapter = null;
   let showChapterView = true;
@@ -7,6 +8,12 @@
   let selectedVerse = null;
   let mobileMenuOpen = false;
   let showScrollTop = false;
+  
+  // Verse data from API
+  let verseData = null;
+  let loadingVerse = false;
+  let showTransliteration = true;
+  let showTranslation = true;
   
   // Dropdown states
   let ayurvedaOpen = false;
@@ -50,11 +57,52 @@
     selectedChapter = null;
     selectedVerse = null;
     showVerseContent = false;
+    verseData = null;
   }
   
-  function selectVerse(verseNum) {
+  async function selectVerse(verseNum) {
     selectedVerse = verseNum;
     showVerseContent = true;
+    loadingVerse = true;
+    verseData = null;
+    
+    // Scroll to verse content section after a brief delay for DOM update
+    setTimeout(() => {
+      const verseSection = document.getElementById('verse-content-section');
+      if (verseSection) {
+        verseSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
+    
+    try {
+      if (verseNum === 0) {
+        // Whole chapter - fetch all verses
+        const verses = await getChapterVerses(selectedChapter.number);
+        verseData = {
+          isWholeChapter: true,
+          verses: verses.filter(v => v.verseNo > 0),
+          chapterNo: selectedChapter.number
+        };
+      } else {
+        // Single verse
+        verseData = await getVerse(selectedChapter.number, verseNum);
+      }
+    } catch (error) {
+      console.error('Error fetching verse:', error);
+      verseData = {
+        sanskrit: 'Error loading verse',
+        transliteration: '',
+        translation: 'Please try again later.'
+      };
+    }
+    
+    loadingVerse = false;
+  }
+  
+  function backToVerses() {
+    showVerseContent = false;
+    selectedVerse = null;
+    verseData = null;
   }
   
   function closeAllDropdowns() {
@@ -435,6 +483,178 @@
           {/if}
         </div>
       </section>
+      
+      <!-- Verse Content Display -->
+      {#if showVerseContent}
+        <section id="verse-content-section" class="py-8 px-4 bg-white/50 min-h-[400px] scroll-mt-20">
+          <div class="max-w-4xl mx-auto">
+            <!-- Back Link -->
+            <button 
+              on:click={backToVerses}
+              class="text-blue-600 hover:text-blue-800 mb-6 flex items-center gap-1 text-sm"
+            >
+              <span>&lt;</span> Back to Verses
+            </button>
+            
+            <!-- Verse Title -->
+            <div class="text-center mb-8">
+              <h3 class="inline-block text-lg md:text-xl tracking-widest pb-2 border-b-2 border-red-500" style="color: #c41e3a; font-family: 'Times New Roman', serif; letter-spacing: 0.15em;">
+                {#if selectedVerse === 0}
+                  CHAPTER {selectedChapter.number} - COMPLETE
+                {:else}
+                  CHAPTER {selectedChapter.number}, VERSE {selectedVerse}
+                {/if}
+              </h3>
+            </div>
+            
+            <!-- Toggle Options -->
+            <div class="flex flex-wrap gap-4 mb-6 pb-4 border-b justify-center">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" bind:checked={showTransliteration} class="w-4 h-4 text-orange-600 rounded accent-orange-600" />
+                <span class="text-sm font-medium text-gray-700">Show Transliteration</span>
+              </label>
+              
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" bind:checked={showTranslation} class="w-4 h-4 text-orange-600 rounded accent-orange-600" />
+                <span class="text-sm font-medium text-gray-700">Show Translation</span>
+              </label>
+            </div>
+            
+            {#if loadingVerse}
+              <div class="text-center py-12">
+                <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-orange-600 mx-auto"></div>
+                <p class="mt-4 text-gray-500">Loading verse from Sanskrit.ie...</p>
+              </div>
+            {:else if verseData}
+              {#if verseData.isWholeChapter}
+                <!-- Whole Chapter Display -->
+                <div class="space-y-8">
+                  {#each verseData.verses as verse, i}
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                      <h4 class="text-orange-700 font-semibold mb-4">Verse {verse.verseNo}</h4>
+                      
+                      <!-- Sanskrit -->
+                      <div class="mb-4">
+                        <h5 class="text-xs font-semibold text-orange-800 mb-2 uppercase tracking-wide">Sanskrit</h5>
+                        <div class="bg-orange-50 p-4 rounded-lg">
+                          <p class="text-xl leading-relaxed text-gray-800 font-serif whitespace-pre-line">
+                            {verse.sanskrit}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {#if showTransliteration}
+                        <div class="mb-4">
+                          <h5 class="text-xs font-semibold text-orange-800 mb-2 uppercase tracking-wide">Transliteration</h5>
+                          <div class="bg-yellow-50 p-4 rounded-lg">
+                            <p class="text-base leading-relaxed text-gray-700 italic whitespace-pre-line">
+                              {verse.transliteration}
+                            </p>
+                          </div>
+                        </div>
+                      {/if}
+                      
+                      {#if showTranslation}
+                        <div>
+                          <h5 class="text-xs font-semibold text-orange-800 mb-2 uppercase tracking-wide">Translation</h5>
+                          <div class="bg-blue-50 p-4 rounded-lg">
+                            <p class="text-base leading-relaxed text-gray-800">
+                              {verse.translation}
+                            </p>
+                          </div>
+                        </div>
+                      {/if}
+                      
+                      {#if verse.audioUrl}
+                        <div class="mt-4">
+                          <audio controls class="w-full">
+                            <source src={verse.audioUrl} type="audio/mpeg">
+                            Your browser does not support audio playback.
+                          </audio>
+                        </div>
+                      {/if}
+                    </div>
+                  {/each}
+                </div>
+              {:else}
+                <!-- Single Verse Display -->
+                <div class="bg-white rounded-lg shadow-md p-6 sm:p-8">
+                  <!-- Sanskrit -->
+                  <div class="mb-8">
+                    <h4 class="text-sm font-semibold text-orange-800 mb-3 uppercase tracking-wide">Sanskrit (Devanagari)</h4>
+                    <div class="bg-orange-50 p-6 rounded-lg">
+                      <p class="text-2xl sm:text-3xl leading-relaxed text-gray-800 font-serif whitespace-pre-line">
+                        {verseData.sanskrit}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {#if showTransliteration}
+                    <div class="mb-8">
+                      <h4 class="text-sm font-semibold text-orange-800 mb-3 uppercase tracking-wide">Transliteration (IAST)</h4>
+                      <div class="bg-yellow-50 p-6 rounded-lg">
+                        <p class="text-lg sm:text-xl leading-relaxed text-gray-700 italic whitespace-pre-line">
+                          {verseData.transliteration}
+                        </p>
+                      </div>
+                    </div>
+                  {/if}
+                  
+                  {#if showTranslation}
+                    <div class="mb-8">
+                      <h4 class="text-sm font-semibold text-orange-800 mb-3 uppercase tracking-wide">English Translation</h4>
+                      <div class="bg-blue-50 p-6 rounded-lg">
+                        <p class="text-lg leading-relaxed text-gray-800">
+                          {verseData.translation}
+                        </p>
+                      </div>
+                    </div>
+                  {/if}
+                  
+                  {#if verseData.audioUrl}
+                    <div class="mt-6">
+                      <h4 class="text-sm font-semibold text-orange-800 mb-3 uppercase tracking-wide">Audio</h4>
+                      <audio controls class="w-full">
+                        <source src={verseData.audioUrl} type="audio/mpeg">
+                        Your browser does not support audio playback.
+                      </audio>
+                    </div>
+                  {/if}
+                  
+                  <!-- Navigation -->
+                  <div class="flex justify-between items-center mt-8 pt-6 border-t">
+                    {#if selectedVerse > 1}
+                      <button 
+                        on:click={() => selectVerse(selectedVerse - 1)}
+                        class="px-4 py-2 bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 transition"
+                      >
+                        ← Previous Verse
+                      </button>
+                    {:else}
+                      <div></div>
+                    {/if}
+                    
+                    {#if selectedVerse < selectedChapter.verses}
+                      <button 
+                        on:click={() => selectVerse(selectedVerse + 1)}
+                        class="px-4 py-2 bg-orange-100 text-orange-700 rounded-lg hover:bg-orange-200 transition"
+                      >
+                        Next Verse →
+                      </button>
+                    {:else}
+                      <div></div>
+                    {/if}
+                  </div>
+                </div>
+              {/if}
+            {:else}
+              <div class="text-center py-12 text-gray-500">
+                No verse data available.
+              </div>
+            {/if}
+          </div>
+        </section>
+      {/if}
     {/if}
   </main>
 
