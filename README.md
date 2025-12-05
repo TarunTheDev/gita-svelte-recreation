@@ -8,22 +8,62 @@ This project brings the timeless wisdom of the Bhagavad Gita to the web with a c
 
 ## Features
 
-- **Complete Bhagavad Gita**: All 18 chapters with their verses
+- **Complete Bhagavad Gita**: All 18 chapters with 700+ verses fetched from Sanskrit.ie API
+- **Live API Integration**: Real-time verse data from Sanskrit.ie
 - **Multiple Display Options**: 
   - Original Sanskrit in Devanagari script
-  - Romanized transliteration for easy pronunciation
+  - Romanized transliteration (IAST) for easy pronunciation
   - Clear English translations
+- **Audio Support**: Listen to verse recitations (when available)
 - **Beautiful Design**: Elegant UI inspired by traditional Indian aesthetics with a modern twist
 - **Chapter Navigation**: Easy browsing through diamond-shaped chapter cards
 - **Verse Navigation**: Scroll-style verse selectors for authentic feel
+- **Auto-Scroll**: Clicking a verse automatically scrolls to display the content
 - **Responsive Layout**: Works seamlessly on desktop, tablet, and mobile devices
 - **Toggle Controls**: Show or hide transliteration and translation as needed
+
+## API Integration
+
+This application uses the **Sanskrit.ie Gita API** to fetch verse data:
+
+### API Details
+
+- **Base URL**: `https://sanskrit.ie/api/geeta.php`
+- **Endpoint**: `GET /?q={chapter_number}`
+- **Response**: JSON with verse data including Sanskrit text, transliteration, translation, and audio URLs
+
+### Example Request
+
+```bash
+curl "https://sanskrit.ie/api/geeta.php?q=1"
+```
+
+### Response Structure
+
+```json
+{
+  "status": 200,
+  "message": "Data Listed",
+  "data": [
+    {
+      "geeta_id": "1",
+      "chapter_no": "1",
+      "shlok_no": "1",
+      "lyrics": "<HTML content with Sanskrit, transliteration, translation>",
+      "music": "path/to/audio.mp3",
+      "qr": "path/to/qr.png"
+    }
+  ],
+  "error": ""
+}
+```
 
 ## Technology Stack
 
 - **SvelteKit** - Modern JavaScript framework for building web applications
 - **Tailwind CSS** - Utility-first CSS framework for styling
 - **Vite** - Fast build tool and development server
+- **Sanskrit.ie API** - Backend API for Bhagavad Gita verse data
 
 ## Getting Started
 
@@ -71,10 +111,11 @@ npm run preview
 bhagavad-gita-reader/
 ├── src/
 │   ├── lib/
+│   │   ├── api/
+│   │   │   └── gita.js     # API integration with Sanskrit.ie
 │   │   ├── components/     # Reusable UI components
 │   │   ├── stores/         # State management
-│   │   ├── data/           # Chapter and verse data
-│   │   └── api/            # API integration utilities
+│   │   └── data/           # Fallback chapter and verse data
 │   ├── routes/             # Application pages
 │   ├── app.css             # Global styles
 │   └── app.html            # HTML template
@@ -82,6 +123,18 @@ bhagavad-gita-reader/
 │   └── images/             # Images and icons
 └── package.json            # Project dependencies
 ```
+
+## API Functions
+
+The `src/lib/api/gita.js` file provides these functions:
+
+| Function | Description |
+|----------|-------------|
+| `getChapterVerses(chapter)` | Fetches all verses for a specific chapter (1-18) |
+| `getVerse(chapter, verse)` | Fetches a single verse by chapter and verse number |
+| `getChapter(chapter)` | Fetches chapter details including name and verse count |
+
+All functions include automatic fallback to local mock data if the API is unavailable.
 
 ## Customization
 
@@ -93,12 +146,12 @@ You can easily customize the look and feel by modifying:
 ## Future Enhancements
 
 Some ideas for future development:
-- Audio narration of verses
 - Search functionality across chapters
 - Bookmarking favorite verses
 - Multiple translation options
 - Commentary from different scholars
 - Dark mode support
+- Offline support with service workers
 
 ## Contributing
 
